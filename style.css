@@ -1,6 +1,7 @@
 .container {
   width: 20rem;
   margin: 5rem auto;
+  list-style: none;
 }
 
 .drag-list {

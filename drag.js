@@ -1,12 +1,14 @@
 /**
  * 拖拽
  * 
- * @param {HTMLElement|string} container 拖拽root元素
- * @param {string} itemSelector 拖拽元素选择器
- * @param {()=>void} onDragStart 拖拽开始回调
- * @param {()=>void} onDragEnd 拖拽结束回调
+ * @typedef {Object} dragOptions 拖拽配置
+ * @property {HTMLElement|string} container 拖拽root元素
+ * @property {string} itemSelector 拖拽元素选择器
+ * @property {(event: PointerEvent, draggingElement: HTMLElement, draggingElementClone: HTMLElement)=>void} onDragStart 拖拽开始回调
+ * @property {()=>void} onMove 拖拽中回调
+ * @property {(event: PointerEvent, draggingElement: HTMLElement, draggingElementClone: HTMLElement)=>void} onDragEnd 拖拽结束回调
  */
-function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
+function enableDrag({container, itemSelector, onDragStart, onMove, onDragEnd}) {
     if (typeof container === 'string')
         container = document.querySelector(container);
     if (container === null)
@@ -26,6 +28,7 @@ function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
     const initRectList = [];
     const elementIndexMap = new WeakMap();
 
+    // 初始化元素的初始位置和大小
     function initElementsData() {
         initRectList.length = 0;
         draggableItems = container.querySelectorAll(itemSelector);
@@ -65,21 +68,19 @@ function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
      * @param {PointerEvent} event
      */
     function onPointerDown(event) {
-        const target = event.target;
-        if (!elementIndexMap.has(target))
+        draggingElement = event.target;
+        if (!elementIndexMap.has(draggingElement))
             return;
+
+        draggingElementClone = draggingElement.cloneNode(true);
+        draggingElementClone.style.boxSizing = 'border-box';
+        draggingElementClone.style.zIndex = 1;
+        container.appendChild(draggingElementClone);
+
+        onDragStart && onDragStart(event, draggingElement, draggingElementClone);
 
         startPosition.x = event.clientX;
         startPosition.y = event.clientY;
-
-        container.classList.add('drag-list--dragging')
-
-        draggingElement = target;
-        draggingElement.classList.add('drag-item--dragging');
-
-        draggingElementClone = draggingElement.cloneNode(true);
-        draggingElementClone.classList.add('drag-item--clone');
-        container.appendChild(draggingElementClone);
 
         const rect = draggingElement.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
@@ -91,7 +92,7 @@ function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
         draggingElementClone.style.width = rect.width + 'px';
         draggingElementClone.style.height = rect.height + 'px';
 
-        startIndex = elementIndexMap.get(target);
+        startIndex = elementIndexMap.get(draggingElement);
     }
 
     /**
@@ -99,7 +100,6 @@ function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
      * @param {PointerEvent} event
      */
     function onPointerMove(event) {
-        const target = event.target;
         // 设置克隆元素的位置
         const x = event.clientX - startPosition.x;
         const y = event.clientY - startPosition.y;
@@ -123,6 +123,8 @@ function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
         const x = initRectList[toIndex].x - initRectList[fromIndex].x;
         const y = initRectList[toIndex].y - initRectList[fromIndex].y;
         draggableItems[fromIndex].style.transform = `translate(${x}px, ${y}px)`;
+
+        onMove && onMove(fromIndex, toIndex);
     }
 
     function updateItems() {
@@ -151,9 +153,9 @@ function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
      * @param {PointerEvent} event
      */
     function onPointerUp(event) {
+        onDragEnd && onDragEnd(event, draggingElement, draggingElementClone);
+
         // 移除事件和样式和克隆元素
-        container.classList.remove('drag-list--dragging')
-        draggingElement.classList.remove('drag-item--dragging');
         draggingElementClone.remove();
         draggingElementClone = null;
 
@@ -162,9 +164,11 @@ function enableDrag(container, itemSelector, onDragStart, onDragEnd) {
             const startItem = draggableItems[startIndex];
             const endItem = draggableItems[endIndex];
             if (startIndex < endIndex)
-                container.insertBefore(startItem, endItem.nextSibling);
+                endItem.parentNode.insertBefore(startItem, endItem.nextSibling);
+                // container.insertBefore(startItem, endItem.nextSibling);
             else
-                container.insertBefore(startItem, endItem);
+                endItem.parentNode.insertBefore(startItem, endItem);
+                // container.insertBefore(startItem, endItem);
 
             draggableItems.forEach(item => 
                 item.style.transform = `translate(0px, 0px)`

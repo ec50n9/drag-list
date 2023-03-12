@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>拖拽列表</title>
     <link rel="stylesheet" href="./style.css">
-</head> 
+</head>
 
 <body>
     <main class="container">
@@ -44,9 +44,26 @@
 <!-- <script src="./main.js"></script> -->
 <script src="./drag.js"></script>
 <script>
-    enableDrag(document.querySelector('.drag-list'), '.drag-item');
-    enableDrag(document.querySelector('.test-list'), '.test-list>li');
-    enableDrag(document.querySelector('.box-list'), '.box-list>li');
+    const dragList = document.querySelector('.container');
+    enableDrag({
+        container: dragList,
+        itemSelector: '.drag-item',
+        onDragStart: (event, draggingElement, draggingElementClone) => {
+            dragList.classList.add('drag-list--dragging');
+            draggingElement.classList.add('drag-item--dragging');
+            draggingElementClone.classList.add('drag-item--clone');
+        },
+        onMove: (fromIndex, toIndex)=>{
+            // console.log("正在移动：", fromIndex, ' => ', toIndex);
+        },
+        onDragEnd: (event, draggingElement, draggingElementClone) => {
+            dragList.classList.remove('drag-list--dragging');
+            draggingElement.classList.remove('drag-item--dragging');
+            draggingElementClone.classList.remove('drag-item--clone');
+        }
+    });
+    // enableDrag('.test-list', '.test-list>li');
+    // enableDrag('.box-list', '.box-list>li');
     // enableDrag(document.querySelector('body'), 'li')
 </script>
 

@@ -15,9 +15,39 @@
             <li class="drag-item">hello, world</li>
             <li class="drag-item">第二项</li>
             <li class="drag-item">第三项</li>
+            <li class="drag-item">第四项</li>
+            <li class="drag-item">第五项</li>
+        </ul>
+
+        <ul class="test-list">
+            <li class="drag-item">hello, world</li>
+            <li class="drag-item">第二项</li>
+            <li class="drag-item">第三项</li>
+            <li class="drag-item">第四项</li>
+            <li class="drag-item">第五项</li>
+        </ul>
+
+        <ul class="box-list">
+            <li class="drag-item">第一项</li>
+            <li class="drag-item">第二项</li>
+            <li class="drag-item">第三项</li>
+            <li class="drag-item">第四项</li>
+            <li class="drag-item">第五项</li>
+            <li class="drag-item">第六项</li>
+            <li class="drag-item">第七项</li>
+            <li class="drag-item">第八项</li>
+            <li class="drag-item">第九项</li>
+            <li class="drag-item">第十项</li>
         </ul>
     </main>
 </body>
-<script src="./main.js"></script>
+<!-- <script src="./main.js"></script> -->
+<script src="./drag.js"></script>
+<script>
+    enableDrag(document.querySelector('.drag-list'), '.drag-item');
+    enableDrag(document.querySelector('.test-list'), '.test-list>li');
+    enableDrag(document.querySelector('.box-list'), '.box-list>li');
+    // enableDrag(document.querySelector('body'), 'li')
+</script>
 
 </html>

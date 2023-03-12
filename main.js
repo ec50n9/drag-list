@@ -1,5 +1,12 @@
 class Draggable {
     containerElement = null;
+    
+    /**
+     * 所有拖拽元素的矩形区域
+     * @type {WeakMap<HTMLElement, {fakeIndex: number}>}
+     */
+    dragItemMaps = new WeakMap();
+
     /**
      * 所有拖拽元素的矩形区域
      * @type {Array}
@@ -7,10 +14,12 @@ class Draggable {
      * @property {number} y - 矩形区域的左上角y坐标
      * @property {number} width - 矩形区域的宽度
      * @property {number} height - 矩形区域的高度
-     * @property {number} index - 矩形区域对应的拖拽元素的索引
+     * @property {number} index - 矩形区域对应的拖拽元素的下标
+     * @property {string} text - 矩形区域对应的拖拽元素的文本
      */
     rectList = [];
-    drag = { element: null, index: 0 };
+
+    dragingElement = null;
     clone = { element: null, x: 0, y: 0 };
     preCurrentIndex = -1;
 
@@ -21,8 +30,15 @@ class Draggable {
 
     init() {
         this.bindEventListeners();
+        this.initDragItemMaps();
         this.initRectList();
-        console.log(this.rectList);
+    }
+    
+    initDragItemMaps() {
+        const dragItems = this.containerElement.querySelectorAll('.drag-item');
+        dragItems.forEach((dragItem, index) => {
+            this.dragItemMaps.set(dragItem, { fakeIndex: index });
+        });
     }
 
     // 初始化所有拖拽元素的矩形区域
@@ -45,18 +61,16 @@ class Draggable {
 
     onPointerDown(event) {
         // 创建一个拖拽元素的克隆
-        this.drag.element = event.target;
-        // 这里应该设置元素的下标
-        this.drag.index = Array.from(this.containerElement.children).indexOf(this.drag.element);
-        this.drag.element.classList.add('drag-item--dragging');
+        this.dragingElement = event.target;
+        this.dragingElement.classList.add('drag-item--dragging');
 
         // 创建克隆元素
-        this.clone.element = this.drag.element.cloneNode(true);
+        this.clone.element = this.dragingElement.cloneNode(true);
         this.clone.element.classList.add('drag-item--clone');
         this.containerElement.appendChild(this.clone.element);
 
         // 将拖拽元素的大小位置设置给克隆元素
-        const rect = this.drag.element.getBoundingClientRect();
+        const rect = this.dragingElement.getBoundingClientRect();
         const containerRect = this.containerElement.getBoundingClientRect();
         this.clone.element.style.width = rect.width + 'px';
         this.clone.element.style.height = rect.height + 'px';
@@ -81,7 +95,8 @@ class Draggable {
                 && this.clone.y + this.clone.element.offsetHeight / 2 < rect.y + rect.height;
         });
 
-        if (currentIndex !== -1 && currentIndex !== this.drag.index && currentIndex !== this.preCurrentIndex) {
+        const dragingIndex = this.dragItemMaps.get(this.dragingElement).fakeIndex
+        if (currentIndex !== -1 && currentIndex !== dragingIndex && currentIndex !== this.preCurrentIndex) {
             this.moveDragingTo(currentIndex)
             this.preCurrentIndex = currentIndex;
         }
@@ -94,18 +109,25 @@ class Draggable {
     }
 
     moveDragingTo(index){
-        this.move(this.containerElement.children[this.drag.index], this.drag.index, index);
+        const fromIndex = this.dragItemMaps.get(this.dragingElement).fakeIndex;
+        // 遍历dragItemMaps，将fakeIndex和index之间的所有元素的fakeIndex更新
+        this.containerElement.querySelectorAll('.drag-item:not(.drag-item--clone)').forEach(dragItem => {
+            const dragItemData = this.dragItemMaps.get(dragItem);
+            if (dragItemData.fakeIndex > fromIndex && dragItemData.fakeIndex <= index) {
+                console.log('move a: ', dragItemData.fakeIndex, '->', dragItemData.fakeIndex - 1);
+                this.move(dragItem, dragItemData.fakeIndex, dragItemData.fakeIndex-1)
+                dragItemData.fakeIndex--;
+            } else if (dragItemData.fakeIndex < fromIndex && dragItemData.fakeIndex >= index) {
+                console.log('move b: ', dragItemData.fakeIndex, '->', dragItemData.fakeIndex + 1);
+                this.move(dragItem, dragItemData.fakeIndex, dragItemData.fakeIndex+1)
+                dragItemData.fakeIndex++;
+            }
+        });
+        console.log('move: ', fromIndex, '->', index);
+        this.move(this.dragingElement, fromIndex, index)
+        this.dragItemMaps.get(this.dragingElement).fakeIndex = index;
 
-        if (index > this.drag.index) {
-            // 遍历移动元素，i是目标位置的索引
-            for (let i = this.drag.index; i < index; i++) {
-                this.move(this.containerElement.children[i + 1], i + 1, i)
-            }
-        } else if (index < this.drag.index) {
-            for (let i = this.drag.index; i > index; i--) {
-                this.move(this.containerElement.children[i - 1], i - 1, i)
-            }
-        }
+        // this.move(this.containerElement.children[this.drag.index], this.drag.index, index);
 
         // 更新rectList
         // console.log('before', this.rectList.map(item => item.text));
@@ -116,9 +138,13 @@ class Draggable {
         // console.log('after', this.rectList.map(item => item.text));
     }
 
+    updateItems() {
+        
+    }
+
     onPointerUp(event) {
         // 清理
-        this.drag.element.classList.remove('drag-item--dragging');
+        this.dragingElement.classList.remove('drag-item--dragging');
         this.clone.element.remove();
         this.clone.element = null;
     }

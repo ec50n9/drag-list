@@ -1,37 +1,55 @@
-.container{
-    width: 15rem;
-    margin: 5rem auto;
+.container {
+  width: 20rem;
+  margin: 5rem auto;
 }
 
-.drag-list{
-    position: relative;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border: 1px solid #ccc;
+.drag-list {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #ccc;
 }
 
-.drag-item{
-    background-color: aliceblue;
-    margin: .5rem;
-    padding: .5rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: .5rem;
-    user-select: none;
-    transition: transform .2s ease;
+.drag-list--dragging .drag-item:not(.drag-item--clone) {
+  transition: transform 0.2s ease;
 }
 
-.drag-item--dragging{
-    border: 1px solid #000;
-    opacity: .5;
+.drag-item {
+  background-color: aliceblue;
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  user-select: none;
 }
 
-.drag-item--clone{
-    position: absolute;
-    box-sizing: border-box;
-    left: 0;
-    top: 0;
-    margin: 0;
-    opacity: 1;
-    z-index: 1;
+.drag-item--dragging {
+  border: 1px solid #000;
+  opacity: 0.5;
+}
+
+.drag-item--clone {
+  box-sizing: border-box;
+  margin: 0;
+  opacity: 1;
+  z-index: 1;
+  transition: none;
+}
+
+.test-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  border: 1px solid #ccc;
+}
+
+.box-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  border: 1px solid #ccc;
 }

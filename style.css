@@ -1,0 +1,37 @@
+.container{
+    width: 15rem;
+    margin: 5rem auto;
+}
+
+.drag-list{
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #ccc;
+}
+
+.drag-item{
+    background-color: aliceblue;
+    margin: .5rem;
+    padding: .5rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: .5rem;
+    user-select: none;
+    transition: transform .2s ease;
+}
+
+.drag-item--dragging{
+    border: 1px solid #000;
+    opacity: .5;
+}
+
+.drag-item--clone{
+    position: absolute;
+    box-sizing: border-box;
+    left: 0;
+    top: 0;
+    margin: 0;
+    opacity: 1;
+    z-index: 1;
+}
